@@ -1,0 +1,50 @@
+/***********************************************************
+* PROJECT: Health shocks, consumption Smoothing and JAMKESMAS
+* AUTHOR: Marsya Candradewi
+* LAST EDIT: October 2025
+* STATA VERSION: 19.5
+************************************************************/
+
+****************************
+**# SET UP AND DIRECTORIES 
+****************************
+clear 
+set maxvar 120000
+capture log close
+set more off
+
+if c(os) == "Windows" & c(username) == "marsyacandradewi" {
+		local DROPBOX_ROOT "C:/Users/`c(username)'/Team MG Dropbox/Marsya Candradewi/Consumption_Smoothing"
+		local GIT_ROOT "C:/Users/`c(username)'/Documents/GitHub/consumption_smoothing_jamkesmas/Code"
+}
+
+* Code Files
+local CODE_CONS "`GIT_ROOT'/consumption"
+local CODE_HEALTH "`GIT_ROOT'/health_measures"
+
+* Input (including IFLS)
+local RAW "`DROPBOX_ROOT'/Data/Raw"
+local RAW_CONS "`RAW'/consumption"
+local RAW_HEALTH "`RAW'/health_measures"
+
+* Working Files
+local WORKING "`DROPBOX_ROOT'/Data/Working"
+local WORKING_CONS "`WORKING'/consumption"
+
+* Output Files
+local OUTPUT "`DROPBOX_ROOT'/Data/Output"
+local FIGURES "`OUTPUT'/Figures"
+local TABLES "`OUTPUT'/Tables"
+local LOG "`OUTPUT'/Log"
+
+********************************
+**#  PER CAPITA EXPENDITURE PCE
+********************************
+* 1. 2007 
+* PCE is calculated by RAND, so only need to do final cleaning 
+include "`CODE_CONS'/Consumption_07.do"
+
+* 2. 2014
+* PCE not yet calc
+include "`CODE_CONS'/Consumption_07.do"
+
