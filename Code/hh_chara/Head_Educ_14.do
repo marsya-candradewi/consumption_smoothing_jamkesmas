@@ -1,10 +1,10 @@
 /*Education of Head*/
-log using "C:\Users\Marjoso\Documents\Skripsi\log file\Head's Edu 14", text replace
+log using "`LOG'/Head_Educ_14", text replace
 
 /*Generating Head*/
 clear
 set more off
-use "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\bk_ar1.dta", clear
+use "`RAW_ID5'/bk_ar1.dta", clear
 
 keep if ar01a==1 | ar01a==2 | ar01a==5 | ar01a==11
 drop if ar09>900 | ar08yr>9000
@@ -15,7 +15,7 @@ replace head=0 if head==.
 keep hhid14 pid14 pidlink head
 
 /*Generating Year of Schooling*/
-mmerge hhid14 pid14 pidlink using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b3a_dl1.dta"
+mmerge hhid14 pid14 pidlink using "`RAW_CHARA5'/b3a_dl1.dta"
 
 generate educ=0 if dl04==3
 /*SD*/
@@ -208,6 +208,6 @@ drop if pairhh~=0
 
 keep hhid14 heduc
 label var heduc "Household Head's Years of Schooling"
-save "C:\Users\Marjoso\Documents\Skripsi\data files\headeduc14.dta", replace
+save "`WORKING_CHARA'/headeduc14.dta", replace
 log close
 

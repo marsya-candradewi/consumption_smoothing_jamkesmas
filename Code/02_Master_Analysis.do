@@ -62,12 +62,7 @@ local LOG "`OUTPUT'/Log"
 **************
 **#  SWITCHES
 **************
-local cons = 0
-local health = 0
-local earn = 0
-local insurance = 0
-local chara = 0
-local finmerge = 1
+local 
 
 ********************************
 **#  PER CAPITA EXPENDITURE (PCE)

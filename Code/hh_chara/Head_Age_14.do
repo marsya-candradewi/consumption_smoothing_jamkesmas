@@ -1,12 +1,12 @@
 /*Household Head's Age*/
-log using "C:\Users\Marjoso\Documents\Skripsi\log file\Head's Age 14", text replace
+log using "`LOG'/Head_Age_14", text replace
 
 *Generating Head*
 clear
 set more off
-use "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\bk_ar1.dta", replace
+use "`RAW_ID5'/bk_ar1.dta", replace
 
-mmerge hhid14 pid14 pidlink using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\bus_cov.dta"
+mmerge hhid14 pid14 pidlink using "`RAW_HEALTH5'/bus_cov.dta"
 
 keep if ar01a==1 | ar01a==2 | ar01a==5 | ar01a==11
 
@@ -29,7 +29,7 @@ duplicates tag hhid14, gen(pairhh)
 drop if pairhh==1
 
 keep hhid14 headage headagesq
-save "C:\Users\Marjoso\Documents\Skripsi\data files\headage14.dta", replace
+save "`WORKING_CHARA'/headage14.dta", replace
 log close
 
 
