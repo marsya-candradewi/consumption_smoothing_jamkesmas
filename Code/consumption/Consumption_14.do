@@ -1,10 +1,10 @@
-log using "C:\Users\Marjoso\Documents\Skripsi\log file\Consumption 14", text replace
+log using "`LOG'/Consumption_14", text replace
 
 /*Consumption 2014*/
 clear
 set more off
-use "C:\Users\Marjoso\Documents\Skripsi\data files\pcewohhsize14.dta", clear
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\hhsize14.dta"
+use "`WORKING_CONS'/pcewohhsize14.dta", clear
+mmerge hhid14 using "`WORKING_CHARA'/hhsize14.dta"
 keep if _merge==3
 gen totcons= hhexp-xmedical
 gen pce=totcons/hhsize
@@ -41,6 +41,6 @@ gen lhhsize=log(hhsize)
 
 keep hhid14 commid14 kabid kecid provid hhsize lhhsize totcons pce foodcon pcfoodcon badcon pcbadcon nonfoodcon pcnonfoodcon invexp pcinvexp xmedical pcmedicalexp ltot* lpce lfood lbad lnonfood linv lmedical
 
-save "C:\Users\Marjoso\Documents\Skripsi\data files\consumption14.dta", replace
+save "`WORKING_CONS'/consumption14.dta", replace
 
 log close

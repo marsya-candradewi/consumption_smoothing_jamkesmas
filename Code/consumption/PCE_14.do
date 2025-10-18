@@ -1,39 +1,39 @@
 /**PCE 14**/
 clear
 set more off
-log using "C:\Users\Marjoso\Documents\Skripsi\log file\pce14", text replace
+log using "`LOG'/pce14", text replace
 
 ****************************************************************************  
 * I. Create a file with kecamatan ID, kabupaten ID, etc  
 ****************************************************************************  
-use hhid14 commid14 result14 if hhid14~="" using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\htrack.dta", clear 
+use hhid14 commid14 result14 if hhid14~="" using "`RAW_ID5'/htrack.dta", clear 
   gen com34=real(substr(commid14,3,2)) 
   gen origea14=(com34~=.) 
   lab var origea "In IFLS EA 14" 
   drop com34  
   sort hhid14 
-save "C:\Users\Marjoso\Documents\Skripsi\data files\commid14.dta", replace 
+save "`WORKING_ID'/commid14.dta", replace 
 
-use "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\bk_sc1.dta", clear 
+use "`RAW_ID5'/bk_sc1.dta", clear 
     bys hhid14: keep if _n==_N 
  gen provid14=sc01_14_14 
  gen double kabid14=sc01_14_14*100+sc02_14_14 
  gen double kecid14=(kabid14*1000)+sc03_14_14 
  sort hhid14
  sort hhid14 
- mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\commid14.dta" 
+ mmerge hhid14 using "`WORKING_ID'/commid14.dta" 
  keep if _merge==3 
  drop _merge 
  gen rural=(sc05~=1) 
  sort hhid14 
-save "C:\Users\Marjoso\Documents\Skripsi\data files\sc14.dta", replace
+save "`WORKING_ID'/sc14.dta", replace
 
 **************************************************************************** ;
 * II. Housing Expenditures, Book KR (B2_KR.DTA)  ;
 ****************************************************************************
 * II.1 Identify outliers 
 ****************************************************************************  ;
-use hhid14 kr03 kr04* kr05* using  "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b2_kr.dta", clear  
+use hhid14 kr03 kr04* kr05* using  "`RAW_CHARA5'/b2_kr.dta", clear  
 bys hhid14: keep if _n==_N 
 format kr04a kr05a %12.0f  
 tab1 kr04a kr05a  
@@ -58,13 +58,13 @@ mvencode _outlierkr*, mv(0)
 list hhid14 kr04 kr05 if _outlierkr04==1 | _outlierkr05==1  
 tab1 _outlier*  
 sort hhid14  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\tempkr14", replace  
+save "`WORKING_CHARA'/tempkr14", replace  
 
 * II.2 Merge with kecid, kabid, information  ;
 ****************************************************************************  ;
-use "C:\Users\Marjoso\Documents\Skripsi\data files\sc14", clear  
+use "`WORKING_ID'/sc14", clear  
 sort hhid14  
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\tempkr14"
+mmerge hhid14 using "`WORKING_CHARA'/tempkr14"
 tab _merge  
 *Only keep HHs who answered Book 2  ;
 keep if _merge==3  
@@ -129,14 +129,14 @@ lab data "KRwith imputed values"
 compress  
 sort hhid14   
 capture drop med* origk*  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b2_kr14", replace  
+save "`WORKING_CHARA'/b2_kr14", replace  
 
 ************************************************************************  ;
 * III. Book 1 - KS  Food Consumption: KS02, KS03  ;
 ************************************************************************  ;
 * III.1 Identify outliers  ;
 ****************************************************************************  ;
-use hhid14 ks02 ks03 ks1type using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b1_ks1.dta", clear  
+use hhid14 ks02 ks03 ks1type using "`RAW_CONS5'/b1_ks1.dta", clear  
 bys hhid14 ks1type: keep if _n==_N 
 format ks02 ks03 %12.0f  
 compress  
@@ -166,14 +166,14 @@ lab var _outlierks03 "Any outlier in ks03"
 lab var _outlierks "Any outlier in ks"  
 aorder  
 sort hhid14
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks114wide.dta", replace  
+save "`WORKING_CONS'/b1_ks114wide.dta", replace  
 compress  
 
 * III.3. Merge with kecamatan ID, etc ; 
 ****************************************************************************  ;
-use "C:\Users\Marjoso\Documents\Skripsi\data files\sc14.dta", clear  
+use "`WORKING_ID'/sc14.dta", clear  
 sort hhid14
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks114wide.dta"  
+mmerge hhid14 using "`WORKING_CONS'/b1_ks114wide.dta"  
 tab _merge 
 keep if _merge==3  
 drop _merge  
@@ -227,15 +227,15 @@ sort hhid14
 capture drop med* origk* sum*  
 compress  
 label data "Wide version of b1_ks1, with imputation"  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks114.dta", replace
+save "`WORKING_CONS'/b1_ks114.dta", replace
 
 ********************************************************************************  ;
 * IV. KS06 (B1_KS2.DTA)  ;
 ********************************************************************************  ;
-
+pause
 * IV.1 Identify outliers  ;
 ****************************************************************************  ;
-use hhid14 ks2type ks06 using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b1_ks2.dta", clear  
+use hhid14 ks2type ks06 using "`RAW_CONS5'/b1_ks2.dta", clear  
 bys hhid14 ks2type: keep if _n==_N 
 format ks06 %16.0f 
 replace ks06=. if ks06>=99999995 
@@ -287,13 +287,13 @@ tab missks06
 sort hhid14
 compress  
 label data "Wide version of b1_ks2"  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks214_wide.dta", replace  
+save "`WORKING_CONS'/b1_ks214_wide.dta", replace  
  
 * IV.5. Merge with commid, kecid, kabid info  ;
 ****************************************************************************  ;
-use hhid* kecid kabid commid14 rural origea using "C:\Users\Marjoso\Documents\Skripsi\data files\sc14.dta", clear  
+use hhid* kecid kabid commid14 rural origea using "`WORKING_ID'/sc14.dta", clear  
 sort hhid14
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks214_wide.dta"  
+mmerge hhid14 using "`WORKING_CONS'/b1_ks214_wide.dta"  
 tab _merge  
 *Only keep HHs which answered Book 1  ;
 keep if _merge==3  
@@ -338,14 +338,14 @@ tab missks06
 compress  
 capture drop origk* med* sumks  
 sort hhid14
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks214.dta", replace  
+save "`WORKING_CONS'/b1_ks214.dta", replace  
 
 ********************************************************************************  ;
 * V. KS08, KS09a,  (B1_KS3.DTA)  ;
 ********************************************************************************  ;
 * V.1. Identify outliers  ;
 ****************************************************************************  ;
-use ks08 ks09a ks3type hhid14 using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b1_ks3.dta", clear  
+use ks08 ks09a ks3type hhid14 using "`RAW_CONS5'/b1_ks3.dta", clear  
 bys hhid14 ks3type: keep if _n==_N 
 replace ks08=. if ks08>=98989998 
 replace ks09a=. if ks09a>=98998998 
@@ -391,17 +391,17 @@ reshape wide ks08 ks09a, i(hhid14) j(ks3type) string
 sort hhid14
 compress  
 label data "Wide version of b1_ks3 created pre_pce.do"  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks314_wide.dta", replace  
+save "`WORKING_CONS'/b1_ks314_wide.dta", replace  
 
 *V.3 Merge with kecamatan ID information  ;
 ****************************************************************************  ;
-use "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks314_wide.dta", clear  
+use "`WORKING_CONS'/b1_ks314_wide.dta", clear  
 sort hhid14
-save "C:\Users\Marjoso\Documents\Skripsi\data files\tempks314.dta", replace  
+save "`WORKING_CONS'/tempks314.dta", replace  
 
-use hhid*  commid14 kecid kabid origea rural using "C:\Users\Marjoso\Documents\Skripsi\data files\sc14.dta", clear  
+use hhid*  commid14 kecid kabid origea rural using "`WORKING_ID'/sc14.dta", clear  
 sort hhid14  
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\tempks314.dta"
+mmerge hhid14 using "`WORKING_CONS'/tempks314.dta"
 tab _merge  
 *Only keep HHs which answered Book 2  ;
 keep if _merge==3  
@@ -456,15 +456,15 @@ capture drop med* origk* sum*
 compress  
 sort hhid14
 
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks314.dta", replace  
+save "`WORKING_CONS'/b1_ks314.dta", replace  
 
 ********************************************************************************  ;
 * VI. B1_KS0  ;
 ********************************************************************************  ;
-use  hhid14 ks04b ks07a ks10aa ks10ab ks11aa ks11ab ks12aa ks12ab ks12bb using "C:\Users\Marjoso\Documents\IFLS\IFLS 5 HH\b1_ks0.dta", clear  
+use  hhid14 ks04b ks07a ks10aa ks10ab ks11aa ks11ab ks12aa ks12ab ks12bb using "`RAW_CONS5'/b1_ks0.dta", clear  
 bys hhid14: keep if _n==_N 
 
-replace ks04b=. if ks04b>=995995 
+replace ks04b=. if ks04b>=995995 	
 gen _outlierks04b=. 
 
 replace ks07a=. if ks07a>=99999995 
@@ -494,7 +494,7 @@ lab var _outlierks12aa "Any outlier in ks12aa"
 lab var _outlierks12ab "Any outlier in ks12ab"
 lab var _outlierks12bb "Any outlier in ks12bb"
 
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\sc14.dta"  
+mmerge hhid14 using "`WORKING_ID'/sc14.dta"  
 tab _merge  
 keep if _merge==3  
 drop _merge  
@@ -578,25 +578,25 @@ capture drop  med* origk*
 sort hhid14
 compress   
 label data "Shorter version of b1_ks0 created using pre_pce.do"  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks014.dta", replace  
-
+save "`WORKING_CONS'/b1_ks014.dta", replace  
+pause
 ************************************************************************************  ;
 * VII. MERGE ALL EXPENDITURE FILES  ;
 ************************************************************************************  ;
-use "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks014.dta", clear
-mmerge hhid14 using "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks114.dta" 
+use "`WORKING_CONS'/b1_ks014.dta", clear
+mmerge hhid14 using "`WORKING_CONS'/b1_ks114.dta" 
 tab _merge  
 rename _merge _m1  
 sort hhid14
-merge hhid14  using "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks214.dta"
+merge hhid14  using "`WORKING_CONS'/b1_ks214.dta"
 tab _merge  
 rename _merge _m2   
 sort hhid14
-mmerge hhid14  using "C:\Users\Marjoso\Documents\Skripsi\data files\b1_ks314.dta"
+mmerge hhid14  using "`WORKING_CONS'/b1_ks314.dta"
 tab _merge  
 rename _merge _m3  
 sort hhid14   
-mmerge hhid14  using "C:\Users\Marjoso\Documents\Skripsi\data files\b2_kr14.dta"
+mmerge hhid14  using "`WORKING_CHARA'/b2_kr14.dta"
 tab _merge  
 * _merge=1 hh in Book 1-KS but not in Book 2 - KR  ;
 * _merge=2 hh in Book 2-KR but not in Book 1 - KS  ;
@@ -614,14 +614,14 @@ drop z
 lab var missing "Household with at least 1 part of expenditure missing"  
 tab missing, m  
 lab data "Merged Book1/KS with missing value & outlier information. Wide version"  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\pre_pce14.dta", replace  
+save "`WORKING_CONS'/pre_pce14.dta", replace  
 
 
 
 ******************************************************************************  ;
 *VIII. PCE    ;
 ******************************************************************************  ;
-use "C:\Users\Marjoso\Documents\Skripsi\data files\pre_pce14.dta",clear  
+use "`WORKING_CONS'/pre_pce14.dta",clear  
 **FOOD (KS02, KS03, AND KS04B), MONTHLY  ;
 
 gen mrice=ks02A*52/12  
@@ -924,6 +924,6 @@ lab var xritax "Monthly expend. on ritual and tax"
 sort hhid14  
 drop ks0*   
 compress  
-save "C:\Users\Marjoso\Documents\Skripsi\data files\pcewohhsize14.dta", replace  
+save "`WORKING_CONS'/pcewohhsize14.dta", replace  
 
 log close  

@@ -1,0 +1,22 @@
+log using "C:\Users\Marjoso\Documents\Skripsi\log file\Share Child 07", text replace
+clear
+use "C:\Users\Marjoso\Documents\IFLS\IFLS 4 HH\bk_ar1.dta", clear
+set more off
+mmerge hhid07 pid07 pidlink using "C:\Users\Marjoso\Documents\IFLS\IFLS 4 HH\bus1_1.dta"
+
+keep if ar01a==1 | ar01a==2 | ar01a==5 | ar01a==11
+
+drop if us03>900 | us02yr>9000
+gen child=1 if us03<15
+replace child=0 if child==.
+
+collapse (sum) child, by (hhid07)
+
+mmerge hhid07 using "C:\Users\Marjoso\Documents\IFLS\IFLS 4 HH\bk_ar0.dta"
+keep if _merge==3
+
+gen sharechild=child/hhsize
+keep hhid07 child hhsize sharechild
+
+save "C:\Users\Marjoso\Documents\Skripsi\data files\sharechild07.dta", replace
+log close
