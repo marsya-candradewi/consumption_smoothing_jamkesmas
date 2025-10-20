@@ -8,8 +8,7 @@
 ****************************
 **# SET UP AND DIRECTORIES 
 ****************************
-clear 
-clear mata
+clear all
 set maxvar 120000
 capture log close
 set more off
@@ -66,7 +65,7 @@ local cons = 0
 local health = 0
 local earn = 0
 local insurance = 0
-local chara = 0
+local chara = 1
 local finmerge = 1
 
 ********************************

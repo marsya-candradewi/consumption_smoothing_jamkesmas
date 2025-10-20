@@ -23,6 +23,15 @@ gen pcinvexp=invexp/hhsize
 
 gen pcmedicalexp= xmedical/hhsize
 
+**# ADJUST WITH INDONESIA YEARLY INFLATION FROM BPS
+** 2008 - 2013 from BPS 11.06	2.78	6.96	3.79	4.30	8.38	
+local allcons "totcons foodcon nonfood badcon invexp xmedical" 
+local allpccons "pce pcfoodcon pcbadcon pcnonfoodcon pcinvexp pcmedicalexp"
+
+foreach var in `allcons' `allpccons' {
+	replace `var' = `var' * 1.111 * 1.0278 * 1.07 * 1.038 * 1.043 * 1.084
+}
+
 gen ltotcons=log(totcons)
 gen ltotfood=log(foodcon)
 gen ltotnonfood=log(nonfood)
