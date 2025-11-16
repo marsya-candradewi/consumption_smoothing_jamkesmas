@@ -32,13 +32,16 @@ save `tstrack', replace
 		
 
 **# 3. Insurance
-	mmerge hhid14 using "`WORKING_INS'/hjamkesmas14.dta"
-	mmerge hhid14 using "`WORKING_INS'/sjamkesmas14.dta"
+	mmerge hhid14 using "`WORKING_INS'/heads_formal_ins_14.dta" // OLD : hjamkesmas
+	mmerge hhid14 using "`WORKING_INS'/spouses_formal_ins_14.dta" // OLD: sjamkesmas
 
 **# 4. HH Characteristics
 	**# Earnings
 	mmerge hhid14 using "`WORKING_CHARA'/earningspercapita14.dta"
 	
+	**# Poverty Alleviation
+	mmerge hhid14 using "`WORKING_CHARA'/PAP14.dta"
+
 	**# Female Head
 	mmerge hhid14 using "`WORKING_CHARA'/fhead14.dta"
 	

@@ -1,0 +1,118 @@
+if c(os) == "Windows" & c(username) == "marsyacandradewi" {
+		local DROPBOX_ROOT "C:/Users/`c(username)'/Team MG Dropbox/Marsya Candradewi/Consumption_Smoothing"
+		local GIT_ROOT "C:/Users/`c(username)'/Documents/GitHub/consumption_smoothing_jamkesmas/Code"
+}
+
+* Necessary Packages 
+* ssc install mmerge
+* ssc install reghdfe
+
+* Code Files
+local CODE_CONS "`GIT_ROOT'/consumption"
+local CODE_HEALTH "`GIT_ROOT'/health_measures"
+local CODE_INS "`GIT_ROOT'/insurance"
+local CODE_CHARA "`GIT_ROOT'/hh_chara"
+local CODE_MER "`GIT_ROOT'/merging"
+local CODE_ANALYSIS "`GIT_ROOT'/analysis"
+
+* Input (including IFLS)
+local RAW "`DROPBOX_ROOT'/Data/Raw"
+local RAW_ID4 "`RAW'/id_tracking/IFLS4"
+local RAW_ID5 "`RAW'/id_tracking/IFLS5"
+local RAW_CONS "`RAW'/consumption"
+local RAW_CONS5 "`RAW'/consumption/IFLS5"
+local RAW_HEALTH4 "`RAW'/health_measures/IFLS4"
+local RAW_HEALTH5 "`RAW'/health_measures/IFLS5"
+local RAW_INS4 "`RAW'/insurance/IFLS4"
+local RAW_INS5 "`RAW'/insurance/IFLS5"
+local RAW_CHARA4 "`RAW'/hh_chara/IFLS4"
+local RAW_CHARA5 "`RAW'/hh_chara/IFLS5"
+
+* Working Files
+local WORKING "`DROPBOX_ROOT'/Data/Working"
+local WORKING_ID "`WORKING'/id_tracking"
+local WORKING_CONS "`WORKING'/consumption"
+local WORKING_HEALTH "`WORKING'/health_measures"
+local WORKING_INS "`WORKING'/insurance"
+local WORKING_CHARA "`WORKING'/hh_chara"
+local WORKING_MER "`WORKING'/merged"
+
+* Output Files
+local OUTPUT "`DROPBOX_ROOT'/Data/Output"
+local FIGURES "`OUTPUT'/Figures"
+local TABLES "`OUTPUT'/Tables"
+local LOG "`OUTPUT'/Log"
+
+
+*******************************
+**# Health Shock Regressions #**
+*******************************
+eststo clear
+local shocks "d_dh d_headADL d_headchronic"
+local names  "Days ADL Chronic"
+
+local i = 1
+foreach s of local shocks {
+    local label : word `i' of `names'
+
+    * --- 1. No Controls ---
+    eststo reg_`s'_nocontrol: reg d_lpce `s', vce(cluster provid14)
+    estadd local FE "No"
+    estadd local Controls "No"
+
+    * --- 2. With Controls ---
+    eststo reg_`s'_controls: reg d_lpce `s' base_heduc base_headage base_headagesq ///
+        d_fhead d_shareprodage d_sharechild, vce(cluster provid14)
+    estadd local FE "No"
+    estadd local Controls "Yes"
+
+    * --- 3. With Controls + Province FE ---
+    eststo reg_`s'_FE: reg d_lpce `s' base_heduc base_headage base_headagesq ///
+        d_fhead d_shareprodage d_sharechild i.provid14 if t==1, vce(cluster provid14)
+    estadd local FE "Yes"
+    estadd local Controls "Yes"
+
+    * --- Export Table ---
+*******************************
+*** Health Shock Regressions ***
+*******************************
+eststo clear
+local shocks "d_dh d_headADL d_headchronic"
+local names  "Days ADL Chronic"
+
+local i = 1
+foreach s of local shocks {
+    local label : word `i' of `names'
+
+    * --- 1. No Controls ---
+    eststo reg_`s'_nocontrol: reg d_lpce `s' if t == 1, vce(cluster provid14)
+    estadd local FE "No"
+    estadd local Controls "No"
+
+    * --- 2. With Controls ---
+    eststo reg_`s'_controls: reg d_lpce `s' base_heduc base_headage base_headagesq ///
+        d_shareprodage d_sharechild if t == 1, vce(cluster provid14)
+    estadd local FE "No"
+    estadd local Controls "Yes"
+
+    * --- 3. With Controls + Province FE ---
+    eststo reg_`s'_FE: reg d_lpce `s' base_heduc base_headage base_headagesq ///
+        d_shareprodage d_sharechild i.provid14 if t==1, vce(cluster provid14)
+    estadd local FE "Yes"
+    estadd local Controls "Yes"
+
+    * --- Export Table ---
+    esttab reg_`s'_nocontrol reg_`s'_controls reg_`s'_FE using "`TABLES'/`label'_shock.tex", ///
+        replace se label b(3) se(3) star(* 0.1 ** 0.05 *** 0.01) ///
+        title("Effect of `label' Health Shock on Log Consumption (Clustered at Province Level)") ///
+        alignment(D{.}{.}{-1}) ///
+        scalars("FE Province FE" "Controls Controls") ///
+        stats(N r2, fmt(%9.0g 3) labels("Observations" "R-squared")) ///
+        addnotes("Standard errors clustered at province level.")
+
+    local ++i
+}
+
+
+    local ++i
+}

@@ -1,11 +1,14 @@
 use "`RAW_INS5'/b3b_ak1.dta", clear
+
 keep if ak01==1
 reshape wide ak02 ak03x ak03 ak04 ak05, i(hhid14 pid14 pidlink) j(aktype) string
-gen jamkesmas=1 if ak02H==1
-replace jamkesmas=1 if ak02I==1
-replace jamkesmas=1 if ak02L==1
+gen jamkesmas=1 if ak02H==1 // Jamkesmas
+replace jamkesmas=1 if ak02I==1 // Jamkesda
+replace jamkesmas=1 if ak02L==1 // JKN
 
+gen askes = (ak)
 mmerge hhid14 pid14 pidlink using "`RAW_ID5'/bk_ar1.dta"
+pause
 drop if ar09>900 | ar08yr>9000
 keep if ar01a==1 | ar01a==2 | ar01a==5 | ar01a==11
 
@@ -15,6 +18,8 @@ gen spouse=1 if ar02b==2
 gen hjamkesmas=head*jamkesmas
 
 ***********************
+replace hjamkesmas = 1 if spouse==1 & ak02H==1 & strpos(ak05H,"A")>0
+
 replace hjamkesmas=1 if spouse==1 & ak02H==1 &ak05H=="A"
 replace hjamkesmas=1 if spouse==1 & ak02H==1 &ak05H=="AB"
 replace hjamkesmas=1 if spouse==1 & ak02H==1 &ak05H=="AC"

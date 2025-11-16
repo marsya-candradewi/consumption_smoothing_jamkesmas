@@ -193,8 +193,8 @@ preserve
 	duplicates tag hhid07, gen (pairhh)
 	drop if pairhh~=0
 
-	replace dh=dh*100/28
-	keep hhid07 dh
+	gen dh_rate=dh*100/28
+	keep hhid07 dh*
 	save "`WORKING_HEALTH'/dh07.dta", replace
 restore
 

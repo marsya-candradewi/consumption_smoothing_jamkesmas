@@ -21,12 +21,15 @@ log using "`LOG'/Merging_07", text replace
 	mmerge hhid07 using "`WORKING_HEALTH'/shealthutil07.dta"
 
 **# 3. Insurance
-	mmerge hhid07 using "`WORKING_INS'/hjamkesmas07.dta"
-	mmerge hhid07 using "`WORKING_INS'/sjamkesmas07.dta"
+	mmerge hhid07 using "`WORKING_INS'/heads_formal_ins_07.dta" // OLD : hjamkesmas
+	mmerge hhid07 using "`WORKING_INS'/spouses_formal_ins_07.dta" // OLD: sjamkesmas
 
 **# 4. HH Characteristics
 	**# Earnings
 	mmerge hhid07 using "`WORKING_CHARA'/earningspercapita07.dta"
+	
+	**# PAP
+	mmerge hhid07 using "`WORKING_CHARA'/PAP07.dta"
 	
 	**# Female Head
 	mmerge hhid07 using "`WORKING_CHARA'/fhead07.dta"

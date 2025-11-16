@@ -12,7 +12,7 @@ clear all
 set maxvar 120000
 capture log close
 set more off
-pause on
+pause off
 
 if c(os) == "Windows" & c(username) == "marsyacandradewi" {
 		local DROPBOX_ROOT "C:/Users/`c(username)'/Team MG Dropbox/Marsya Candradewi/Consumption_Smoothing"
@@ -61,10 +61,10 @@ local LOG "`OUTPUT'/Log"
 **************
 **#  SWITCHES
 **************
-local cons = 0
-local health = 0
-local earn = 0
-local insurance = 0
+local cons = 1
+local health = 1
+local earn = 1
+local insurance = 1
 local chara = 1
 local finmerge = 1
 
@@ -87,7 +87,7 @@ if `cons' == 1 {
 	** final 2014 consumption
 	 include "`CODE_CONS'/Consumption_14.do"
 }
-
+	
 **************
 **#  HEALTH
 **************
@@ -131,9 +131,13 @@ if `earn' == 1 {
 **************
 if `insurance' == 1 {
 	
-	* 1. Jamkesmas
-	include "`CODE_INS'/Jamkesmas_07.do" // 2007	
-	include "`CODE_INS'/Jamkesmas_14.do" // 2014
+	include "`CODE_INS'/Jamkesmas_07_new"
+	include "`CODE_INS'/Jamkesmas_14_new"
+	
+	* Archive: 
+	* include "`CODE_INS'/Jamkesmas_07.do" // 2007	
+	* include "`CODE_INS'/Jamkesmas_14.do" // 2014
+	
 }
 
 **************

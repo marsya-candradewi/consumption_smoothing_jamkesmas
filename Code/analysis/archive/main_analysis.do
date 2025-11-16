@@ -51,9 +51,28 @@ local LOG "`OUTPUT'/Log"
 
 use "`WORKING_MER'/final0714", clear
 
-**# Generating Final Jamkesmas var
+**# FINAL CLEANING
+** checking how much health measures (ADL, days of sick, chronic ill) changes
+gen hsADL = (headADL + spouseADL ) / 2
+gen hschronic = headchronic == 1 | spousechronic == 1
+gen hsdays = dh + ds 
+gen PAP2 = (PKH == 1 | BLT == 1)
 
-foreach var in hjamkesmas sjamkesmas {	
+local headill "headADL headchronic dh"
+local spouseill "spouseADL spousechronic ds"
+local combinedill "hsADL hschronic hsdays"
+local maincons "lfood lnonfood lbad lpce lmedical"
+local pap "raskin BLT PKH PAP PAP2"
+local hinsurance "hjamkesmas haskes hjamsostek hemp_ins hemp_clinic hprivate_ins hsaving_ins hjamkessos hjampersal hformal_ins"
+local sinsurance "sjamkesmas saskes sjamsostek semp_ins semp_clinic sprivate_ins ssaving_ins sjamkessos sjampersal sformal_ins"
+local hh_chara "learningpc shareprodage sharechild fhead"
+
+foreach var in `headill' `spouseill' `combinedill' `maincons' `pap' ///
+	`hh_chara' hjamkesmas sjamkesmas learning {
+	bys hhid07 (t): gen d_`var'= `var' - `var'[_n-1]    
+}
+
+foreach var in `hinsurance' `sinsurance' {	
 	gen `var'14_1 = 1 if `var' == 1 & t == 1
 	replace `var'14_1 = 0 if `var' == 0 & t == 1
 	egen `var'14 = mean(`var'14_1), by(hhid07)
@@ -63,28 +82,59 @@ foreach var in hjamkesmas sjamkesmas {
 	egen `var'07 = mean(`var'07_1), by(hhid07)
 }
 
+/*
 foreach w in 07 14 {
 	gen hsjamkesmas`w' = 1 if hjamkesmas`w' == 1 | sjamkesmas`w' == 1
 	replace hsjamkesmas`w' = 0 if hjamkesmas`w' == 0 & sjamkesmas`w' == 0
 }
-
-** CHECKING DIFFERENCES
-** checking how much health measures (ADL, days of sick, chronic ill) changes
-gen hsADL = (headADL + spouseADL ) / 2
-gen hschronic = headchronic == 1 | spousechronic == 1
-gen hsdays = dh + ds 
-
-local headill "headADL headchronic dh"
-local spouseill "spouseADL spousechronic ds"
-local combinedill "hsADL hschronic hsdays"
-local maincons "lfood lnonfood lbad"
-
-foreach var in `headill' `spouseill' `combinedill' `maincons' {
-	bys hhid07 (t): gen d_`var'= `var' - `var'[_n-1]    
+*/
+foreach var in `hinsurance' `insurance' {
+	gen new_`var' = (`var'14 == 1 & `var'07 == 0)
+	gen old_`var' = (`var'14 == 1 & `var'07 == 1)
+	gen never_`var' = (`var' == 0 & `var' == 0)
 }
 
-gen new_hjamkesmas= (hjamkesmas14 == 1 & hjamkesmas07 == 0)
-gen old_hjamkesmas = (hjamkesmas14 == 1 & hjamkesmas07 == 1)
+foreach var in heduc shareprodage sharechild headage headagesq urban {
+	egen base_`var' = first(`var'), by(hhid07)
+}
+
+gen allcons = totcons + xmedical // Marsya recheck tomorrow
+
+summarize allcons if t == 0, detail
+scalar p40 = r(p40)
+** Labelling 
+
+label var d_dh "$\Delta$ Head's Days of Sickness (\% Last Month)"
+label var d_headADL "$\Delta$ Head's ADL Index (0 - 1)"
+label var d_headchronic "$\Delta$ Head's Chronic Illness (Yes = 1)"
+
+label var d_ds "$\Delta$ Spouse's Days of Sickness (\% Last Month)"
+label var d_spouseADL "$\Delta$ Spouse's ADL Index (0 - 1)"
+label var d_spousechronic "$\Delta$ Spouse's Chronic Illness (Yes = 1)"
+
+label var d_learningpc "$\Delta$ Labor Earnings per Capita"
+label var d_lmedical "$\Delta$ Medical Expenditure per Capita"
+
+pause
+
+**# FINAL CLEAN UP TO HERE 
+**# KEEPING BOTTOM 40% FOR JAMKESMAS
+// 2007 
+_pctile allcons if t == 0, p(40)
+return list
+gen all_bottom40_07 = `r(r1)'
+
+// 2014 
+_pctile allcons if t == 1, p(40)
+return list
+gen all_bottom40_14 = `r(r1)'
+
+gen hh_bottom40_07 = (allcons <= all_bottom40_07)
+gen hh_bottom40_14 = (allcons <= all_bottom40_14)
+
+keep if (allcons < bottom40_07 & t == 0) | ///
+	(allcons < bottom40_14 & t == 1 )
+**
 
 **# BALANCE
 local baltab = 0
@@ -92,13 +142,63 @@ include "`CODE_ANALYSIS'/balance table.do"
 
 **# GRAPHS
 ** days of sickness
+twoway ///
+	(scatter d_lfood d_dh if t == 1 , mcolor(blue)) ///
+    (lfit d_lfood d_dh if t == 1, lcolor(blue)), ///
+    title("Relationship between ΔFood Consumption and Days of Sickness Shock") ///
+    ytitle("Δ log(Food Consumption)") ///
+    xtitle("Health Shock")
 
+twoway ///
+	(scatter d_lfood d_dh if t == 1 & d_dh >=0 , mcolor(blue)) ///
+    (lfit d_lfood d_dh if t == 1 & d_dh >=0, lcolor(blue)), ///
+    title("Relationship between ΔFood Consumption and Days of Sickness Shock") ///
+    ytitle("Δ log(Food Consumption)") ///
+    xtitle("Health Shock")
+
+twoway ///
+ (lfit d_lfood d_dh if t==1 & d_dh>=0, lcolor(red) lpattern(solid)) ///
+ (lfit d_lfood d_dh if t==1 & d_dh<=0, lcolor(blue) lpattern(dash)) ///
+, ///
+ ytitle("Δ log(Food Consumption)") ///
+ xtitle("Δ Days Sick") ///
+ title("Positive vs Negative Health Shocks") ///
+ legend(order(1 "Health worsened" 2 "Health improved"))
+
+ 
+twoway ///
+ (lfit d_lfood d_dh if t==1 & d_dh>=0, lcolor(red) lpattern(solid)) ///
+ (lfit d_lfood d_dh if t==1 & d_dh<=0, lcolor(blue) lpattern(dash)) ///
+, ///
+ ytitle("Δ log(Food Consumption)") ///
+ xtitle("Δ Days Sick") ///
+ title("Positive vs Negative Health Shocks") ///
+ legend(order(1 "Health worsened" 2 "Health improved"))
+twoway ///
+	(scatter d_lfood d_headADL if t == 1 , mcolor(blue)) ///
+    (lowess d_lfood d_headADL if t == 1, lcolor(blue)), ///
+    title("Relationship between ΔFood Consumption and ADL Shock") ///
+    ytitle("Δ log(Food Consumption)") ///
+    xtitle("Health Shock")
+
+twoway ///
+	(scatter d_lfood d_headchronic if t == 1 , mcolor(blue)) ///
+    (lowess d_lfood d_headchronic if t == 1, lcolor(blue)), ///
+    title("Relationship between ΔFood Consumption and Chronic Ill Shock") ///
+    ytitle("Δ log(Food Consumption)") ///
+    xtitle("Health Shock")
+
+	
 twoway (scatter d_lfood d_dh if t == 1 & hjamkesmas14 == 1) ///
  (scatter d_lfood d_dh if t == 1 & hjamkesmas14 == 0) 
  
 twoway (lfit d_lfood d_dh if t == 1 & hjamkesmas14 == 1) ///
 	(lfit d_lfood d_dh if t == 1 & hjamkesmas14 == 0) ///
 	(lfit d_lfood d_dh if t == 1 & new_hjamkesmas == 1) 
+
+twoway (lfit d_lfood d_dh if t == 1 & new_hjamkesmas == 1) ///
+	(lfit d_lfood d_dh if t == 1 & old_hjamkesmas == 0) ///
+	(lfit d_lfood d_dh if t == 1 & never_hjamkesmas == 1) 
 	
 twoway ///
 	(scatter d_lfood d_dh if t == 1 & hjamkesmas14 == 1, mcolor(blue)) ///
@@ -209,9 +309,7 @@ twoway ///
     xtitle("Health Shock")
 
 **# REGRESSIONS
-foreach var in heduc shareprodage sharechild headage headagesq urban {
-	egen base_`var' = first(`var'), by(hhid07)
-}
+
 **# FOOD
 * 1. ADL 
 reg d_lfood d_headADL if t == 1, vce(cluster provid14)
@@ -304,6 +402,17 @@ reg d_lnonfood i.hjamkesmas14##c.d_headchronic ///
 	base_heduc shareprodage sharechild ///
 	i.provid14 if t==1, vce(cluster provid14)
 
+**# OVERALL
+reg d_lpce d_headADL base_heduc shareprodage sharechild ///
+	i.provid14 if t==1, vce(cluster provid14)
+
+reg d_lpce d_dh base_heduc shareprodage sharechild ///
+	i.provid14 if t==1, vce(cluster provid14)
+	
+reg d_lpce d_headchronic base_heduc shareprodage sharechild ///
+	i.provid14 if t==1, vce(cluster provid14)
+
+	
 **# MEDICAL 
 
 **# LABOR
